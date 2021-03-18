@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 
-from .layers import ContextualAttentionLayer
+from .layers import ContextualAttention
 
 
 def cov(x, rowvar=False, bias=False, ddof=None, aweights=None):
@@ -116,7 +116,7 @@ def build_layers(config: [str], in_channels=3, input_size=256):
 
         elif layer_name == 'ContextualAttentionLayer':
             layers.append(
-                ContextualAttentionLayer()
+                ContextualAttention()
             )
             pass
 

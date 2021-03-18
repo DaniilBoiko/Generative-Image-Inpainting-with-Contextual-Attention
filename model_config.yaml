@@ -57,7 +57,7 @@ LocalCritic:
   - conv_K5S2C128
   - conv_K5S2C256
   - conv_K5S2C512
-  - fc_IN131072OUT1
+  - fc
 
 GlobalCritic:
   - conv_K5S2C64
