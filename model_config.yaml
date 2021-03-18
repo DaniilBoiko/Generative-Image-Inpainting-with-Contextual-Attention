@@ -1,4 +1,4 @@
-CoarseNetworK:
+CoarseNetwork:
   - conv_K5S1C32
   - conv_K3S2C64
   - conv_K3S1C64
@@ -19,7 +19,7 @@ CoarseNetworK:
   - conv_K3S1C16
   - conv_K3S1C3
 
-RefinmentNetwork:
+RefinementNetwork:
   Convolutional:
     - conv_K5S1C32
     - conv_K3S2C64
@@ -57,7 +57,7 @@ LocalCritic:
   - conv_K5S2C128
   - conv_K5S2C256
   - conv_K5S2C512
-  - fc
+  - fc_IN131072OUT1
 
 GlobalCritic:
   - conv_K5S2C64

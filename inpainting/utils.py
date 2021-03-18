@@ -1,6 +1,8 @@
 import torch
 from torch import nn
 
+from .layers import ContextualAttentionLayer
+
 
 def cov(x, rowvar=False, bias=False, ddof=None, aweights=None):
     """
@@ -54,8 +56,11 @@ def cov(x, rowvar=False, bias=False, ddof=None, aweights=None):
     return c.squeeze()
 
 
-def build_layers(config: [str], in_channels=3):
+def build_layers(config: [str], in_channels=3, input_size=256):
     layers = []
+
+    need_flatten = True
+    current_size = input_size
 
     n_of_channels = in_channels
     for line in config:
@@ -98,23 +103,38 @@ def build_layers(config: [str], in_channels=3):
                           out_channels=converted_params['C'],
                           kernel_size=converted_params['K'],
                           stride=converted_params['S'],
+                          padding=converted_params['D'] if 'D' in converted_params else converted_params['K'] // 2,
                           dilation=converted_params['D'] if 'D' in converted_params else 1
                           )
             )
+            layers.append(
+                nn.ELU()
+            )
 
             n_of_channels = converted_params['C']
+            current_size /= converted_params['S']
 
         elif layer_name == 'ContextualAttentionLayer':
+            layers.append(
+                ContextualAttentionLayer()
+            )
             pass
 
         elif layer_name == 'fc':
-            pass
+            if need_flatten:
+                layers.append(
+                    torch.nn.Flatten()
+                )
+                need_flatten = False
+
+            layers.append(
+                torch.nn.Linear(int(n_of_channels * current_size ** 2), 1)
+            )
 
         elif layer_name == 'upscale':
             layers.append(
                 torch.nn.Upsample(scale_factor=2)
             )
-            pass
 
         else:
             raise ValueError
