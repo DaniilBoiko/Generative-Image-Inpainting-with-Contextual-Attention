@@ -1,4 +1,5 @@
 import torch
+from torch import nn
 
 
 def cov(x, rowvar=False, bias=False, ddof=None, aweights=None):
@@ -51,3 +52,71 @@ def cov(x, rowvar=False, bias=False, ddof=None, aweights=None):
     c = c / fact
 
     return c.squeeze()
+
+
+def build_layers(config: [str], in_channels=3):
+    layers = []
+
+    n_of_channels = in_channels
+    for line in config:
+        params = None
+
+        splitted_line = line.split('_')
+        if len(splitted_line) == 2:
+            layer_name, params = splitted_line
+        else:
+            layer_name = line
+
+        converted_params = []
+        if layer_name == 'conv' and params:
+            name_cache = ''
+            property_cache = ''
+            previous = ''
+
+            for symbol in params:
+                if not symbol.isdigit() and previous.isdigit():
+                    converted_params.append([name_cache, int(property_cache)])
+                    name_cache = ''
+                    property_cache = ''
+
+                previous = symbol
+
+                if symbol.isdigit():
+                    property_cache += symbol
+
+                if not symbol.isdigit():
+                    name_cache += symbol
+
+            if name_cache and property_cache:
+                converted_params.append([name_cache, int(property_cache)])
+
+        converted_params = {k: v for k, v in converted_params}
+
+        if layer_name == 'conv':
+            layers.append(
+                nn.Conv2d(in_channels=n_of_channels,
+                          out_channels=converted_params['C'],
+                          kernel_size=converted_params['K'],
+                          stride=converted_params['S'],
+                          dilation=converted_params['D'] if 'D' in converted_params else 1
+                          )
+            )
+
+            n_of_channels = converted_params['C']
+
+        elif layer_name == 'ContextualAttentionLayer':
+            pass
+
+        elif layer_name == 'fc':
+            pass
+
+        elif layer_name == 'upscale':
+            layers.append(
+                torch.nn.Upsample(scale_factor=2)
+            )
+            pass
+
+        else:
+            raise ValueError
+
+    return layers

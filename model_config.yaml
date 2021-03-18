@@ -1,0 +1,67 @@
+CoarseNetworK:
+  - conv_K5S1C32
+  - conv_K3S2C64
+  - conv_K3S1C64
+  - conv_K3S2C128
+  - conv_K3S1C128
+  - conv_K3S1C128
+  - conv_K3D2S1C128
+  - conv_K3D4S1C128
+  - conv_K3D8S1C128
+  - conv_K3D16S1C128
+  - conv_K3S1C128
+  - conv_K3S1C128
+  - upscale
+  - conv_K3S1C64
+  - conv_K3S1C64
+  - upscale
+  - conv_K3S1C32
+  - conv_K3S1C16
+  - conv_K3S1C3
+
+RefinmentNetwork:
+  Convolutional:
+    - conv_K5S1C32
+    - conv_K3S2C64
+    - conv_K3S1C64
+    - conv_K3S2C128
+    - conv_K3S1C128
+    - conv_K3S1C128
+    - conv_K3D2S1C128
+    - conv_K3D4S1C128
+    - conv_K3D8S1C128
+    - conv_K3D16S1C128
+  Attention:
+    - K5S1C32
+    - K3S2C64
+    - K3S1C64
+    - K3S2C128
+    - K3S1C128
+    - K3S1C128
+    - ContextualAttentionLayer
+    - K3S1C128
+    - K3S1C128
+  Both:
+    - conv_K3S1C128
+    - conv_K3S1C128
+    - upscale
+    - conv_K3S1C64
+    - conv_K3S1C64
+    - upscale
+    - conv_K3S1C32
+    - conv_K3S1C16
+    - conv_K3S1C3
+
+LocalCritic:
+  - conv_K5S2C64
+  - conv_K5S2C128
+  - conv_K5S2C256
+  - conv_K5S2C512
+  - fc
+
+GlobalCritic:
+  - conv_K5S2C64
+  - conv_K5S2C128
+  - conv_K5S2C256
+  - conv_K5S2C256
+  - fc
