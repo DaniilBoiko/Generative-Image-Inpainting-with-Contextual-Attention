@@ -4,7 +4,7 @@ import numpy as np
 from skimage import io
 
 import torch
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 
 
 class BBox:

@@ -50,7 +50,7 @@ def compute_tv(img, img_hat):
     return img_hat_tv / (img_tv + EPSILON)
 
 
-def compute_FID(img, img_hat):
+def compute_fid(img, img_hat):
     img_transformed = FID_MODEL(FID_MODEL_TRANSFORMS(img).unsqueeze(0))[0]
     img_mu, img_sigma = torch.mean(img_transformed), cov(img_transformed)
 
@@ -77,7 +77,7 @@ def compute_metrics(img, img_hat):
             img.cpu().numpy(), img_hat.cpu().numpy(),
             multichannel=True, data_range=1
         ),
-        'FID': None
+        'FID': compute_fid(img, img_hat)
     }
 
     return metrics
