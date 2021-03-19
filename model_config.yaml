@@ -1,26 +1,5 @@
-CoarseNetwork:
-  - conv_K5S1C32
-  - conv_K3S2C64
-  - conv_K3S1C64
-  - conv_K3S2C128
-  - conv_K3S1C128
-  - conv_K3S1C128
-  - conv_K3D2S1C128
-  - conv_K3D4S1C128
-  - conv_K3D8S1C128
-  - conv_K3D16S1C128
-  - conv_K3S1C128
-  - conv_K3S1C128
-  - upscale
-  - conv_K3S1C64
-  - conv_K3S1C64
-  - upscale
-  - conv_K3S1C32
-  - conv_K3S1C16
-  - conv_K3S1C3
-
-RefinementNetwork:
-  Convolutional:
+Model:
+  CoarseNetwork:
     - conv_K5S1C32
     - conv_K3S2C64
     - conv_K3S1C64
@@ -31,17 +10,6 @@ RefinementNetwork:
     - conv_K3D4S1C128
     - conv_K3D8S1C128
     - conv_K3D16S1C128
-  Attention:
-    - conv_K5S1C32
-    - conv_K3S2C64
-    - conv_K3S1C64
-    - conv_K3S2C128
-    - conv_K3S1C128
-    - conv_K3S1C128
-    - ContextualAttentionLayer
-    - conv_K3S1C128
-    - conv_K3S1C128
-  Both:
     - conv_K3S1C128
     - conv_K3S1C128
     - upscale
@@ -52,16 +20,57 @@ RefinementNetwork:
     - conv_K3S1C16
     - conv_K3S1C3
 
-LocalCritic:
-  - conv_K5S2C64
-  - conv_K5S2C128
-  - conv_K5S2C256
-  - conv_K5S2C512
-  - fc
+  RefinementNetwork:
+    Convolutional:
+      - conv_K5S1C32
+      - conv_K3S2C64
+      - conv_K3S1C64
+      - conv_K3S2C128
+      - conv_K3S1C128
+      - conv_K3S1C128
+      - conv_K3D2S1C128
+      - conv_K3D4S1C128
+      - conv_K3D8S1C128
+      - conv_K3D16S1C128
+    Attention:
+      - conv_K5S1C32
+      - conv_K3S2C64
+      - conv_K3S1C64
+      - conv_K3S2C128
+      - conv_K3S1C128
+      - conv_K3S1C128
+      - ContextualAttentionLayer
+      - conv_K3S1C128
+      - conv_K3S1C128
+    Both:
+      - conv_K3S1C128
+      - conv_K3S1C128
+      - upscale
+      - conv_K3S1C64
+      - conv_K3S1C64
+      - upscale
+      - conv_K3S1C32
+      - conv_K3S1C16
+      - conv_K3S1C3
 
-GlobalCritic:
-  - conv_K5S2C64
-  - conv_K5S2C128
-  - conv_K5S2C256
-  - conv_K5S2C256
-  - fc
+  LocalCritic:
+    - conv_K5S2C64
+    - conv_K5S2C128
+    - conv_K5S2C256
+    - conv_K5S2C512
+    - fc
+
+  GlobalCritic:
+    - conv_K5S2C64
+    - conv_K5S2C128
+    - conv_K5S2C256
+    - conv_K5S2C256
+    - fc
+
+OptParams:
+  Generator:
+    lr: 1e-4
+  LocalCritic:
+    lr: 1e-4
+  GlobalCritic:
+    lr: 1e-4

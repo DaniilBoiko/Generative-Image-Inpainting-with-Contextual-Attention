@@ -1,5 +1,5 @@
 import torch
-import torch.functional as F
+import torch.nn.functional as F
 from torch import nn
 
 
@@ -32,6 +32,7 @@ class ContextualAttention(nn.Module):
             torch.tensor: output
         """
         # get shapes
+
         raw_int_fs = list(f.size())  # b*c*h*w
         raw_int_bs = list(b.size())  # b*c*h*w
 
@@ -141,7 +142,7 @@ class ContextualAttention(nn.Module):
 
             # deconv for patch pasting
             wi_center = raw_wi[0]
-            # yi = F.pad(yi, [0, 1, 0, 1])    # here may need conv_transpose same padding
+            yi = F.pad(yi, [0, 1, 0, 1])    # here may need conv_transpose same padding
             yi = F.conv_transpose2d(yi, wi_center, stride=self.rate, padding=1) / 4.  # (B=1, C=128, H=64, W=64)
             y.append(yi)
             offsets.append(offset)
