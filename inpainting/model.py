@@ -33,10 +33,7 @@ class RefinementNetwork(nn.Module):
     def __init__(self, config):
         super(RefinementNetwork, self).__init__()
 
-        self.layers = {}
-        for group_name, sublayers in config.items():
-            if group_name != 'both':
-                self.layers[group_name] = nn.Sequential(*build_layers(sublayers))
+        self.layers = dict()
 
         self.layers['Convolutional'] = nn.Sequential(*build_layers(config['Convolutional']))
         self.layers['Attention'] = AttentionBranch(config['Attention'])
@@ -49,14 +46,15 @@ class RefinementNetwork(nn.Module):
         ))
 
     def forward(self, x, mask):
-        conv_x = self.layers['Convolutional'](x)
-        atten_x = self.layers['Attention'](x, mask)
+        convolutional_x = self.layers['Convolutional'](x)
+        attention_x = self.layers['Attention'](x, mask)
 
-        x = torch.cat([conv_x, atten_x], dim=1)
+        x = torch.cat([convolutional_x, attention_x], dim=1)
         x = self.layers['Both'](x)
         x = torch.clamp(x, -1., 1.)
 
         return x
+
 
 class LocalCritic(nn.Module):
     def __init__(self, config):
@@ -65,6 +63,7 @@ class LocalCritic(nn.Module):
 
     def forward(self, x):
         return self.layers(x)
+
 
 class GlobalCritic(nn.Module):
     def __init__(self, config):
