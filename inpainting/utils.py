@@ -116,7 +116,7 @@ def build_layers(config: [str], in_channels=3, input_size=256):
 
         elif layer_name == 'ContextualAttentionLayer':
             layers.append(
-                ContextualAttention()
+                ContextualAttention(use_cuda=True)
             )
             pass
 
@@ -140,3 +140,20 @@ def build_layers(config: [str], in_channels=3, input_size=256):
             raise ValueError
 
     return layers
+
+
+def spatial_discount(gamma, mask_shape, discounted_mask):
+    height, width = mask_shape
+
+    sd_shape = [1, 1, height, width]
+
+    if discounted_mask:
+        sd_values = torch.ones(*sd_shape)
+        for i in range(height):
+            for j in range(width):
+                sd_values[0, 0, i, j] = max(
+                    gamma ** min(i, height - i),
+                    gamma ** min(j, height - j)
+                )
+
+    return sd_values

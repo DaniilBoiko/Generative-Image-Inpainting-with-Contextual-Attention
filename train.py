@@ -11,7 +11,7 @@ config = yaml.load(open('model_config.yaml'))
 PATH = ''
 
 image_loader = DataLoader(
-    ImageDataset(PATH, max_mask_size=64),
+    ImageDataset(PATH),
     batch_size=4, shuffle=True, num_workers=16, drop_last=True
 )
 

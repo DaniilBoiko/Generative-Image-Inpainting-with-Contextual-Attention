@@ -43,21 +43,21 @@ def bbox2mask(input_shape: (int, int), bbox: BBox) -> torch.FloatTensor:
 
 
 class ImageDataset(Dataset):
-    def __init__(self, path: str, image_shape: (int, int) = (256, 256), max_mask_size: int = 100):
+    def __init__(self, path: str, image_shape: (int, int) = (256, 256)):
         self.path = path
-        self.filenames = os.listdir(path)
+        self.filenames = []
+
+        for root, dirs, files in os.walk(path):
+            for filename in files:
+                if filename.endswith('.jpg'):
+                    self.filenames.append(
+                        os.path.join(root, filename)
+                    )
         self.image_shape = image_shape
-        self.max_mask_size = max_mask_size
 
     def __len__(self):
         return len(self.filenames)
 
     def __getitem__(self, idx):
-        image = io.imread(os.path.join(self.path, self.filenames[idx]))
-        mask_size = np.random.choice(self.max_mask_size)
-        mask = bbox2mask(self.image_shape, random_bbox_fixed(mask_size, mask_size, self.image_shape))
-        sample = {
-            'image': image,
-            'mask': mask
-        }
-        return sample
+        image = io.imread(self.filenames[idx]) / 255
+        return np.moveaxis(image, -1, 0).astype(float)
