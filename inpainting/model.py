@@ -17,7 +17,7 @@ class CoarseNetwork(nn.Module):
 class AttentionBranch(nn.Module):
     def __init__(self, config):
         super(AttentionBranch, self).__init__()
-        self.layers = build_layers(config)
+        self.layers = torch.nn.ModuleList(build_layers(config))
 
     def forward(self, x, masks):
         for layer in self.layers:
@@ -40,7 +40,7 @@ class RefinementNetwork(nn.Module):
     def __init__(self, config):
         super(RefinementNetwork, self).__init__()
 
-        self.layers = dict()
+        self.layers = torch.nn.ModuleDict({})
 
         self.layers['Convolutional'] = nn.Sequential(*build_layers(config['Convolutional']))
         self.layers['Attention'] = AttentionBranch(config['Attention'])
