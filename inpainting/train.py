@@ -49,8 +49,6 @@ class GAN(pl.LightningModule):
         x_cn = cn_output * masks + x * (1 - masks)
         x_rn = rn_output * masks + x * (1 - masks)
 
-
-
         if optimizer_idx == 0:
             l1_losses = spatial_dis * (
                 (
@@ -65,19 +63,13 @@ class GAN(pl.LightningModule):
         if optimizer_idx == 1:
             pass
 
-        if optimizer_idx == 2:
-            pass
-
     def configure_optimizers(self):
-        opt_gen = torch.optim.Adam(
+        opt_D = torch.optim.Adam(
+            [list(self.local_critic.parameters()) + list(self.global_critic.parameters())],
+            lr=self.hparams.opt_params['D']['lr'])
+
+        opt_G = torch.optim.Adam(
             [list(self.coarse_network.parameters()) + list(self.refinement_network.parameters())],
-            lr=self.hparams.opt_params['Generator']['lr'],
+            lr=self.hparams.opt_params['G']['lr'],
         )
-
-        opt_lc = torch.optim.Adam(self.local_critic.parameters(),
-                                  lr=self.hparams.opt_params['LocalCritic']['lr'])
-
-        opt_gc = torch.optim.Adam(self.global_critic.parameters(),
-                                  lr=self.hparams.opt_params['GlobalCritic']['lr'])
-
-        return [opt_gen, opt_lc, opt_gc], []
+        return [opt_D, opt_G], []

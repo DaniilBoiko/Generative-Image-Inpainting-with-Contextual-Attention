@@ -28,6 +28,13 @@ class AttentionBranch(nn.Module):
 
         return x
 
+    def cuda(self):
+        for layer in self.layers:
+            layer.cuda()
+
+            if layer.__class__.__name__ == 'ContextualAttention':
+                layer.use_cuda = True
+
 
 class RefinementNetwork(nn.Module):
     def __init__(self, config):
@@ -54,6 +61,10 @@ class RefinementNetwork(nn.Module):
         x = torch.clamp(x, -1., 1.)
 
         return x
+
+    def cuda(self):
+        for _, layer in self.layers.items():
+            layer.cuda()
 
 
 class LocalCritic(nn.Module):

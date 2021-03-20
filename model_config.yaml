@@ -68,9 +68,7 @@ Model:
     - fc
 
 OptParams:
-  Generator:
+  G:
     lr: 1e-4
-  LocalCritic:
-    lr: 1e-4
-  GlobalCritic:
+  D:
     lr: 1e-4
