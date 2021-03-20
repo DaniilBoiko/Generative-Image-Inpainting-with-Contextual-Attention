@@ -8,13 +8,15 @@ import pytorch_lightning as pl
 
 config = yaml.load(open('model_config.yaml'))
 
-PATH = ''
+PATH = 'data/test_256'
+
+print(PATH)
 
 image_loader = DataLoader(
     ImageDataset(PATH),
-    batch_size=4, shuffle=True, num_workers=16, drop_last=True
+    batch_size=8, shuffle=True, num_workers=16, drop_last=True
 )
 
 gan = GAN(config['Model'], config['OptParams'])
-trainer = pl.Trainer()
+trainer = pl.Trainer(gpus=1)
 trainer.fit(gan, image_loader)

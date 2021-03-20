@@ -11,7 +11,7 @@ class CoarseNetwork(nn.Module):
 
     def forward(self, x):
         x = self.layers(x)
-        return torch.clamp(x, -1, 1)
+        return torch.clamp(x, 0., 1)
 
 
 class AttentionBranch(nn.Module):
@@ -58,7 +58,7 @@ class RefinementNetwork(nn.Module):
 
         x = torch.cat([convolutional_x, attention_x], dim=1)
         x = self.layers['Both'](x)
-        x = torch.clamp(x, -1., 1.)
+        x = torch.clamp(x, 0., 1.)
 
         return x
 
@@ -70,7 +70,7 @@ class RefinementNetwork(nn.Module):
 class LocalCritic(nn.Module):
     def __init__(self, config):
         super(LocalCritic, self).__init__()
-        self.layers = nn.Sequential(*build_layers(config))
+        self.layers = nn.Sequential(*build_layers(config, input_size=64))
 
     def forward(self, x):
         return self.layers(x)

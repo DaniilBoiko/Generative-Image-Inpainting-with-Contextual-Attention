@@ -1,7 +1,7 @@
 import os
 
 import numpy as np
-from skimage import io
+from skimage import io, color
 
 import torch
 from torch.utils.data import Dataset
@@ -27,8 +27,8 @@ def random_bbox(height: int, width: int) -> BBox:
 def random_bbox_fixed(height: int, width: int, input_shape: (int, int)) -> BBox:
     """Generates random bounding box of fixed size by choosing center point first
     """
-    center_x = np.random.choice(input_shape[0] - height // 2)
-    center_y = np.random.choice(input_shape[1] - width // 2)
+    center_x = np.random.randint(height // 2, input_shape[0] - height // 2)
+    center_y = np.random.randint(width // 2, input_shape[1] - width // 2)
 
     return BBox(center_x + height // 2, center_y - width // 2, center_x - height // 2, center_y + width // 2)
 
@@ -60,4 +60,8 @@ class ImageDataset(Dataset):
 
     def __getitem__(self, idx):
         image = io.imread(self.filenames[idx]) / 255
+
+        if len(image.shape) == 2:
+            image = color.gray2rgb(image)
+
         return np.moveaxis(image, -1, 0).astype(float)
