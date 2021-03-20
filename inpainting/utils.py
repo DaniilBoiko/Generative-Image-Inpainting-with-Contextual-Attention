@@ -146,9 +146,9 @@ def spatial_discount(gamma, mask_shape, discounted_mask):
     height, width = mask_shape
 
     sd_shape = [1, 1, height, width]
+    sd_values = torch.ones(*sd_shape)
 
     if discounted_mask:
-        sd_values = torch.ones(*sd_shape)
         for i in range(height):
             for j in range(width):
                 sd_values[0, 0, i, j] = max(
@@ -157,3 +157,4 @@ def spatial_discount(gamma, mask_shape, discounted_mask):
                 )
 
     return sd_values
+

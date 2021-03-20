@@ -50,18 +50,28 @@ class GAN(pl.LightningModule):
         x_rn = rn_output * masks + x * (1 - masks)
 
         if optimizer_idx == 0:
-            l1_losses = spatial_dis * (
-                (
-                        self.l1_loss(x_cn, imgs) + self.l1_loss(x_rn, imgs)
-                )[:, :, bbox.left: bbox.right, bbox.bottom: bbox.top]
-            )
-            adversarial_losses = 0
+            lc_preds_fake = self.local_critic(x_rn[:, :, bbox.left: bbox.right, bbox.bottom: bbox.top])
+            gc_preds_fake = self.global_critic(x_rn)
 
-            loss = l1_losses + adversarial_losses
-            loss.backward()
+            lc_preds_real = self.local_critic(x[:, :, bbox.left: bbox.right, bbox.bottom: bbox.top])
+            gc_preds_real = self.global_critic(x)
+
+            loss = lc_preds_fake.mean() - lc_preds_real.mean() + gc_preds_fake.mean() - gc_preds_real.mean()
+            return loss
 
         if optimizer_idx == 1:
-            pass
+            l1_losses = spatial_dis * (
+                (self.l1_loss(x_cn, imgs) + self.l1_loss(x_rn, imgs)
+                 )[:, :, bbox.left: bbox.right, bbox.bottom: bbox.top]
+            )
+
+            lc_preds_fake = self.local_critic(x_rn[:, :, bbox.left: bbox.right, bbox.bottom: bbox.top])
+            gc_preds_fake = self.global_critic(x_rn)
+
+            adversarial_losses = -lc_preds_fake.mean() - gc_preds_fake.mean()
+
+            loss = l1_losses + adversarial_losses
+            return loss
 
     def configure_optimizers(self):
         opt_D = torch.optim.Adam(
