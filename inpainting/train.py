@@ -67,7 +67,6 @@ class GAN(pl.LightningModule):
         x_cn = cn_output * masks + x * (1 - masks)
         x_rn = rn_output * masks + x * (1 - masks)
 
-
         if batch_idx % 1000 == 0:
             self.logger.experiment.add_image('input', make_grid(x), batch_idx)
             self.logger.experiment.add_image('mask', make_grid(masks), batch_idx)
