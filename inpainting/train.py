@@ -67,6 +67,15 @@ class GAN(pl.LightningModule):
         x_cn = cn_output * masks + x * (1 - masks)
         x_rn = rn_output * masks + x * (1 - masks)
 
+
+        if batch_idx % 1000 == 0:
+            self.logger.experiment.add_image('input', make_grid(x), batch_idx)
+            self.logger.experiment.add_image('mask', make_grid(masks), batch_idx)
+            self.logger.experiment.add_image('cn_output', make_grid(cn_output), batch_idx)
+            self.logger.experiment.add_image('cn_output', make_grid(rn_output), batch_idx)
+            self.logger.experiment.add_image('x_cn', make_grid(x_cn), batch_idx)
+            self.logger.experiment.add_image('x_rn', make_grid(x_rn), batch_idx)
+
         if optimizer_idx == 0:
             lc_preds_fake = self.local_critic(x_rn[:, :, bbox.left: bbox.right, bbox.bottom: bbox.top])
             gc_preds_fake = self.global_critic(x_rn)
