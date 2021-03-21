@@ -14,7 +14,7 @@ print(PATH)
 
 image_loader = DataLoader(
     ImageDataset(PATH),
-    batch_size=8, shuffle=True, num_workers=16, drop_last=True
+    batch_size=16, shuffle=True, num_workers=16, drop_last=True
 )
 
 gan = GAN(config['Model'], config['OptParams'])

@@ -15,7 +15,7 @@ import numpy as np
 
 class GAN(pl.LightningModule):
 
-    def __init__(self, config, opt_params, bbox_size=64):
+    def __init__(self, config, opt_params, weight_cliping_limit=0.01, bbox_size=64):
         super().__init__()
         self.save_hyperparameters()
 
@@ -33,6 +33,10 @@ class GAN(pl.LightningModule):
         return F.binary_cross_entropy(y_hat, y)
 
     def training_step(self, imgs, batch_idx, optimizer_idx):
+        for p in self.global_critic.parameters():
+            p.data.clamp_(-self.hparams.weight_cliping_limit, self.hparams.weight_cliping_limit)
+
+
         bbox = random_bbox_fixed(64, 64, input_shape=(256, 256))
 
         x = imgs.float()
@@ -60,7 +64,7 @@ class GAN(pl.LightningModule):
 
             loss = gc_preds_fake.mean() - gc_preds_real.mean()
 
-            self.log('D_loss', loss.item())
+            self.logger.log_metrics({'D_loss': loss.item()}, batch_idx)
             return loss
 
         if optimizer_idx == 1:
@@ -74,16 +78,16 @@ class GAN(pl.LightningModule):
 
             loss = l1_losses.mean() + adversarial_losses
 
-            self.log('G_loss', loss.item())
+            self.logger.log_metrics({'G_loss': loss.item()}, batch_idx)
             return loss
 
     def configure_optimizers(self):
-        opt_D = torch.optim.Adam(
-            list(self.local_critic.parameters()) + list(self.global_critic.parameters()),
+        opt_D = torch.optim.RMSprop(
+            list(self.global_critic.parameters()),
             lr=self.hparams.opt_params['D']['lr'])
 
-        opt_G = torch.optim.Adam(
-            list(self.coarse_network.parameters()) + list(self.refinement_network.parameters()),
+        opt_G = torch.optim.RMSprop(
+            list(self.coarse_network.parameters()),
             lr=self.hparams.opt_params['G']['lr'],
         )
         return [opt_D, opt_G], []
