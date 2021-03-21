@@ -57,7 +57,7 @@ class GAN(pl.LightningModule):
         masks = masks.float().cuda()
 
         x = imgs.float()
-        x[:, :, bbox.left: bbox.right, bbox.bottom: bbox.top] = 0.0
+        x[:, :, bbox.left: bbox.right, bbox.bottom: bbox.top] = 1.0
 
         spatial_dis = spatial_discount(0.999, (64, 64), True).cuda()
 
@@ -74,7 +74,8 @@ class GAN(pl.LightningModule):
             lc_preds_real = self.local_critic(x[:, :, bbox.left: bbox.right, bbox.bottom: bbox.top])
             gc_preds_real = self.global_critic(x)
 
-            loss = lc_preds_fake.mean() - lc_preds_real.mean() + gc_preds_fake.mean() - gc_preds_real.mean()
+            loss = lc_preds_fake.mean() - lc_preds_real.mean() + gc_preds_fake.mean() - gc_preds_real.mean() + \
+                   self.hparams.opt_params['lambdaGP'] * self.compute_gradient_penalty(x, x_rn, bbox)
 
             self.log('D_loss', loss.item())
             return loss
@@ -93,6 +94,41 @@ class GAN(pl.LightningModule):
 
             self.log('G_loss', loss.item())
             return loss
+
+    def compute_gradient_penalty(self, real, fake, bbox):
+        alpha = torch.Tensor(np.random.random((real.size(0), 1, 1, 1))).to(self.device)
+
+        interpolates = (alpha * real + ((1 - alpha) * fake)).requires_grad_(True)
+        interpolates_masked = (alpha * real + ((1 - alpha) * fake))[:, :, bbox.left: bbox.right,
+                              bbox.bottom: bbox.top].requires_grad_(True)
+
+        lc_interpolates = self.local_critic(interpolates_masked)
+        gc_interpolates = self.global_critic(interpolates_masked)
+
+        fake_tensor = torch.Tensor(real.shape[0], 1).fill_(1.0).to(self.device)
+        lc_gradients = torch.autograd.grad(
+            outputs=lc_interpolates,
+            inputs=interpolates_masked,
+            grad_outputs=fake_tensor,
+            create_graph=True,
+            retain_graph=True,
+            only_inputs=True,
+        )[0]
+        lc_gradients = lc_gradients.view(lc_gradients.size(0), -1).to(self.device)
+
+        gc_gradients = torch.autograd.grad(
+            outputs=gc_interpolates,
+            inputs=interpolates,
+            grad_outputs=fake_tensor,
+            create_graph=True,
+            retain_graph=True,
+            only_inputs=True,
+        )[0]
+        gc_gradients = gc_gradients.view(gc_gradients.size(0), -1).to(self.device)
+
+        gradient_penalty = ((lc_gradients.norm(2, dim=1) - 1) ** 2).mean() + (
+                (gc_gradients.norm(2, dim=1) - 1) ** 2).mean()
+        return gradient_penalty
 
     def configure_optimizers(self):
         opt_D = torch.optim.Adam(

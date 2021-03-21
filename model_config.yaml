@@ -72,3 +72,5 @@ OptParams:
     lr: 0.0001
   D:
     lr: 0.0001
+
+  lambdaGP: 10
