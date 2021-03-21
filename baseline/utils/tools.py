@@ -36,6 +36,7 @@ def tensor_img_to_npimg(tensor_img):
 def normalize(x):
     return x.mul_(2).add_(-1)
 
+
 def same_padding(images, ksizes, strides, rates):
     assert len(images.size()) == 4
     batch_size, channel, rows, cols = images.size()
@@ -43,8 +44,8 @@ def same_padding(images, ksizes, strides, rates):
     out_cols = (cols + strides[1] - 1) // strides[1]
     effective_k_row = (ksizes[0] - 1) * rates[0] + 1
     effective_k_col = (ksizes[1] - 1) * rates[1] + 1
-    padding_rows = max(0, (out_rows-1)*strides[0]+effective_k_row-rows)
-    padding_cols = max(0, (out_cols-1)*strides[1]+effective_k_col-cols)
+    padding_rows = max(0, (out_rows - 1) * strides[0] + effective_k_row - rows)
+    padding_cols = max(0, (out_cols - 1) * strides[1] + effective_k_col - cols)
     # Pad the input
     padding_top = int(padding_rows / 2.)
     padding_left = int(padding_cols / 2.)
@@ -86,7 +87,7 @@ def extract_image_patches(images, ksizes, strides, rates, padding='same'):
     return patches  # [N, C*k*k, L], L is the total number of such blocks
 
 
-def random_bbox(config, batch_size):
+def random_bbox(config, batch_size, mask_shape=(64, 64)):
     """Generate a random tlhw with configuration.
 
     Args:
@@ -97,7 +98,7 @@ def random_bbox(config, batch_size):
 
     """
     img_height, img_width, _ = config['image_shape']
-    h, w = config['mask_shape']
+    h, w = mask_shape
     margin_height, margin_width = config['margin']
     maxt = img_height - margin_height - h
     maxl = img_width - margin_width - w
@@ -145,13 +146,17 @@ def test_bbox2mask():
     return mask
 
 
-def local_patch(x, bbox_list):
+def local_patch(x, bbox_list, base_size=128):
     assert len(x.size()) == 4
+
     patches = []
     for i, bbox in enumerate(bbox_list):
         t, l, h, w = bbox
-        patches.append(x[i, :, t:t + h, l:l + w])
-    return torch.stack(patches, dim=0)
+        patches.append(x[i, :, t:t + h, l:l + w], )
+
+    patches = torch.stack(patches, dim=0)
+    patched = F.interpolate(patches, (base_size, base_size))
+    return patches
 
 
 def mask_image(x, bboxes, config):

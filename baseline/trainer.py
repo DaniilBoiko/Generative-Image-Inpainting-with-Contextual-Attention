@@ -32,7 +32,7 @@ class Trainer(nn.Module):
             self.localD.to(self.device_ids[0])
             self.globalD.to(self.device_ids[0])
 
-    def forward(self, x, bboxes, masks, ground_truth, compute_loss_g=False):
+    def forward(self, x, bboxes, masks, ground_truth, compute_loss_g=False, mask_shape=128):
         self.train()
         l1_loss = nn.L1Loss()
         losses = {}

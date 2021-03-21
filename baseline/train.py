@@ -4,6 +4,8 @@ import time
 import shutil
 from argparse import ArgumentParser
 
+import numpy as np
+
 import torch
 import torch.nn as nn
 import torch.backends.cudnn as cudnn
@@ -42,7 +44,7 @@ def main():
         os.makedirs(checkpoint_path)
     shutil.copy(args.config, os.path.join(checkpoint_path, os.path.basename(args.config)))
     writer = SummaryWriter(logdir=checkpoint_path)
-    logger = get_logger(checkpoint_path)    # get logger and configure it at the first call
+    logger = get_logger(checkpoint_path)  # get logger and configure it at the first call
 
     logger.info("Arguments: {}".format(args))
     # Set random seed
@@ -104,7 +106,11 @@ def main():
                 ground_truth = next(iterable_train_loader)
 
             # Prepare the inputs
-            bboxes = random_bbox(config, batch_size=ground_truth.size(0))
+            mask_shape = 2 ** (np.maximum(2 * (7 * (1 - 1 / ((iteration + 1) * 1e-4)) // 2) + 1, 2))
+
+            bboxes = random_bbox(config,
+                                 mask_shape=(mask_shape, mask_shape),
+                                 batch_size=ground_truth.size(0))
             x, mask = mask_image(ground_truth, bboxes, config)
             if cuda:
                 x = x.cuda()
@@ -113,7 +119,8 @@ def main():
 
             ###### Forward pass ######
             compute_g_loss = iteration % config['n_critic'] == 0
-            losses, inpainted_result, offset_flow = trainer(x, bboxes, mask, ground_truth, compute_g_loss)
+            losses, inpainted_result, offset_flow = trainer(x, bboxes, mask, ground_truth,
+                                                            compute_g_loss, mask_shape)
             # Scalars from different devices are gathered into vectors
             for k in losses.keys():
                 if not losses[k].dim() == 0:
