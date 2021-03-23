@@ -59,9 +59,9 @@ class ImageDataset(Dataset):
         return len(self.filenames)
 
     def __getitem__(self, idx):
-        image = io.imread(self.filenames[idx]) / 255.0
-        image *= 2
-        image -= 1
+        image = io.imread(self.filenames[idx]).astype(float)
+
+        image = 2 * image / 255.0 - 1
 
         if len(image.shape) == 2:
             image = color.gray2rgb(image)

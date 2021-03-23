@@ -7,7 +7,7 @@ from .utils import build_layers
 class CoarseNetwork(nn.Module):
     def __init__(self, config):
         super(CoarseNetwork, self).__init__()
-        self.layers = nn.Sequential(*build_layers(config))
+        self.layers = nn.Sequential(*build_layers(config)[:-1])
 
     def forward(self, x):
         x = self.layers(x)
@@ -50,7 +50,7 @@ class RefinementNetwork(nn.Module):
             in_channels=self.layers['Convolutional']._modules[
                             str(len(self.layers['Convolutional']._modules) - 2)
                         ].out_channels + self.layers['Attention'].layers[-2].out_channels
-        ))
+        )[:-1])
 
     def forward(self, x, mask):
         convolutional_x = self.layers['Convolutional'](x)
