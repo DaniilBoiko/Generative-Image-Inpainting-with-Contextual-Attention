@@ -19,7 +19,7 @@ def get_predictions(image, mask, model):
         outputs = model.forward(image, mask) * mask + image * (1 - mask)
         outputs = outputs.cpu().numpy()
 
-    return (255*(outputs[0]+1)/2).astype(np.uint8)
+    return np.moveaxis((255*(outputs[0]+1)/2).astype(np.uint8), 0, -1)
 
 
 image = (np.random.rand(256, 256, 3) * 255).astype(np.uint8)
