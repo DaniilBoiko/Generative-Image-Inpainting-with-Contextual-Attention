@@ -42,11 +42,11 @@ class GAN(pl.LightningModule):
 
         self.bbox_size = bbox_size
 
-    def forward(self, x):
+    def forward(self, x, mask):
         coarse_output = self.coarse_network(x)
-        refined_output = self.refinement_network(coarse_output)
+        refined_output = self.refinement_network(coarse_output, mask)
 
-        return [coarse_output, refined_output]
+        return refined_output
 
     def adversarial_loss(self, y_hat, y):
         return F.binary_cross_entropy(y_hat, y)
@@ -148,6 +148,7 @@ class GAN(pl.LightningModule):
             retain_graph=True,
             only_inputs=True,
         )[0]
+        
         gc_gradients = gc_gradients.view(gc_gradients.size(0), -1).to(self.device)
 
         gradient_penalty = ((lc_gradients.norm(2, dim=1) - 1) ** 2).mean() + (
