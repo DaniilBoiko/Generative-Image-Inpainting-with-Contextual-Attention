@@ -6,7 +6,7 @@ import numpy as np
 
 class Model:
     def __init__(self, path):
-        self.model = GAN.load_from_checkpoint('epoch=1-step=54749.ckpt')
+        self.model = GAN.load_from_checkpoint(path)
         self.model = self.model.cuda()
 
     def forward(self, image, mask, cheat=True):
