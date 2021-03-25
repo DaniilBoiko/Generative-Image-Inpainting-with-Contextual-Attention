@@ -4,4 +4,3 @@ torch==1.7.1
 imageio==2.9.0
 torchvision==0.8.2
 pytorch_lightning==1.2.4
-skimage==0.0
