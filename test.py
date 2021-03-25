@@ -7,7 +7,7 @@ import numpy as np
 class Model:
     def __init__(self, path):
         self.model = GAN.load_from_checkpoint(path)
-        self.model = self.model.cuda()
+        self.model = self.model
 
     def forward(self, image, mask, cheat=True):
         """
@@ -21,14 +21,14 @@ class Model:
         image = 2 * (np.array([np.moveaxis(image, -1, 0)]) / 255.0).astype(float) - 1
         mask = (np.array([[mask]]) / 255.0).astype(float)
 
-        image = torch.cuda.FloatTensor(image)
-        mask = torch.cuda.FloatTensor(mask)
+        image = torch.FloatTensor(image)
+        mask = torch.FloatTensor(mask)
 
         if not cheat:
             image = image * (1 - mask) + mask
 
         with torch.no_grad():
             outputs = self.model.forward(image, mask) * mask + image * (1 - mask)
-            outputs = outputs.cpu().numpy()
+            outputs = outputs.numpy()
 
         return np.moveaxis((255 * (outputs[0] + 1) / 2).astype(np.uint8), 0, -1)
