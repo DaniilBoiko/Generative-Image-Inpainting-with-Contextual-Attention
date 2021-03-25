@@ -44,6 +44,7 @@ class RefinementNetwork(nn.Module):
 
         self.layers['Convolutional'] = nn.Sequential(*build_layers(config['Convolutional']))
         self.layers['Attention'] = AttentionBranch(config['Attention'])
+        self.layers['Attention'].layers[12].use_cuda=False
 
         self.layers['Both'] = nn.Sequential(*build_layers(
             config['Both'],

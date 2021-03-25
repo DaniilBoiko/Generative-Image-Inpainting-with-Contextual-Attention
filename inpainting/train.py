@@ -24,17 +24,6 @@ class GAN(pl.LightningModule):
 
         self.refinement_network = RefinementNetwork(config['RefinementNetwork'])
 
-        self.refinement_network.cuda()
-
-        for _, layer in self.refinement_network.layers.items():
-            layer.cuda()
-
-        for layer in self.refinement_network.layers['Attention'].layers:
-            layer = layer.cuda()
-
-            if layer.__class__.__name__ == 'ContextualAttention':
-                layer.use_cuda = True
-
         self.local_critic = LocalCritic(config['LocalCritic'])
         self.global_critic = GlobalCritic(config['GlobalCritic'])
 
@@ -53,7 +42,6 @@ class GAN(pl.LightningModule):
 
     def training_step(self, imgs, batch_idx, optimizer_idx):
         bbox = random_bbox_fixed(64, 64, input_shape=(256, 256))
-
 
         masks = torch.zeros(imgs.shape)
         masks[:, :, bbox.left:bbox.right, bbox.bottom:bbox.top] += 1.0
@@ -93,7 +81,8 @@ class GAN(pl.LightningModule):
             x_rn = rn_output * masks + x * (1 - masks)
 
             l1_losses = (spatial_dis * (
-                (torch.abs(x_cn - imgs.float()) + torch.abs(x_rn - imgs.float()))[:, :, bbox.left: bbox.right, bbox.bottom: bbox.top]
+                (torch.abs(x_cn - imgs.float()) + torch.abs(x_rn - imgs.float()))[:, :, bbox.left: bbox.right,
+                bbox.bottom: bbox.top]
             )).mean() + torch.abs(rn_output * (1 - masks) - x * (1 - masks)).mean()
 
             lc_preds_fake = self.local_critic(x_rn[:, :, bbox.left: bbox.right, bbox.bottom: bbox.top])
@@ -101,7 +90,7 @@ class GAN(pl.LightningModule):
 
             adversarial_losses = -lc_preds_fake.mean() - gc_preds_fake.mean()
 
-            loss = l1_losses + adversarial_losses*0.001
+            loss = l1_losses + adversarial_losses * 0.001
 
             self.logger.experiment.add_scalars(
                 'G_metrics',
@@ -148,7 +137,7 @@ class GAN(pl.LightningModule):
             retain_graph=True,
             only_inputs=True,
         )[0]
-        
+
         gc_gradients = gc_gradients.view(gc_gradients.size(0), -1).to(self.device)
 
         gradient_penalty = ((lc_gradients.norm(2, dim=1) - 1) ** 2).mean() + (
