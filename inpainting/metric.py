@@ -5,18 +5,6 @@ from torchvision import transforms
 
 from .utils import cov
 
-EPSILON = 1e-5
-FID_MODEL = torch.hub.load('pytorch/vision:v0.9.0', 'inception_v3', pretrained=True)
-FID_MODEL.fc = nn.Identity()
-FID_MODEL.eval()
-
-FID_MODEL_TRANSFORMS = transforms.Compose([
-    transforms.Resize(299),
-    transforms.CenterCrop(299),
-    transforms.ToTensor(),
-    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-])
-
 
 def compute_psnr(img, img_hat):
     """
@@ -47,20 +35,7 @@ def compute_tv(img, img_hat):
     img_tv = tv(img)
     img_hat_tv = tv(img_hat)
 
-    return img_hat_tv / (img_tv + EPSILON)
-
-
-def compute_fid(img, img_hat):
-    img_transformed = FID_MODEL(FID_MODEL_TRANSFORMS(img).unsqueeze(0))[0]
-    img_mu, img_sigma = torch.mean(img_transformed), cov(img_transformed)
-
-    img_hat_transformed = FID_MODEL(FID_MODEL_TRANSFORMS(img_hat).unsqueeze(0))[0]
-    img_hat_mu, img_hat_sigma = torch.mean(img_hat_transformed), cov(img_hat_transformed)
-
-    ssdiff = torch.sum((img_mu - img_hat_mu) ** 2)
-    covmean = torch.nan_to_num(torch.sqrt(torch.dot(img_transformed, img_hat_transformed)))
-
-    return ssdiff + torch.trace(img_sigma + img_hat_sigma - 2 * covmean)
+    return img_hat_tv / (img_tv + 1e-5)
 
 
 def compute_metrics(img, img_hat):
@@ -76,8 +51,7 @@ def compute_metrics(img, img_hat):
         'SSIM': ssim(
             img.cpu().numpy(), img_hat.cpu().numpy(),
             multichannel=True, data_range=1
-        ),
-        'FID': compute_fid(img, img_hat)
+        )
     }
 
     return metrics
